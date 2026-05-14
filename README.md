@@ -1,5 +1,9 @@
 # hwp2hwpx
 
+[![CI](https://github.com/kossembly-dot/hwp2hwpx/actions/workflows/ci.yml/badge.svg)](https://github.com/kossembly-dot/hwp2hwpx/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/hwp2hwpx)](https://pypi.org/project/hwp2hwpx/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 Convert HWP files to HWPX format — the only `pip install`-able HWP→HWPX converter.
 
 HWP is the legacy binary format used by [Hangul (한글)](https://www.hancom.com/), the dominant word processor in South Korea. HWPX is the modern XML-based format (OWPML/ODF-like ZIP archive). This package converts between them programmatically — no Hangul installation or GUI required.
@@ -83,18 +87,12 @@ Pure file-format conversion. No Hangul installation, no COM API, no DRM issues.
 
 Korean file paths on Windows are automatically handled via temp-file workaround (JVM encoding issue bypass).
 
-## Output format
+## Development
 
-The output HWPX is a standard ZIP archive containing:
+```bash
+pip install -e ".[test]"
+pytest
 ```
-META-INF/container.xml
-Contents/header.xml
-Contents/section0.xml
-Contents/section1.xml
-...
-```
-
-Fully compatible with Hangul 2020+ and any OWPML-aware tool.
 
 ## License
 
