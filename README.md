@@ -1,22 +1,30 @@
 # hwp2hwpx
 
-HWP(한글 워드프로세서) 파일을 HWPX(OWPML) 형식으로 변환하는 Python 패키지.
+Convert HWP files to HWPX format — the only `pip install`-able HWP→HWPX converter.
 
-[neolord0/hwp2hwpx](https://github.com/neolord0/hwp2hwpx) Java 라이브러리를 번들하여
-`pip install` 한 줄로 설치, 바로 사용할 수 있게 만든 래퍼입니다.
+HWP is the legacy binary format used by [Hangul (한글)](https://www.hancom.com/), the dominant word processor in South Korea. HWPX is the modern XML-based format (OWPML/ODF-like ZIP archive). This package converts between them programmatically — no Hangul installation or GUI required.
 
-## 요구사항
+[🇰🇷 한국어](#한국어)
 
-- Python 3.8+
-- Java Runtime Environment (JRE) 8+
+## Why?
 
-## 설치
+| Tool | What it does | Limitation |
+|------|-------------|------------|
+| **Hangul GUI** | Open HWP → Save As HWPX | Manual, not scriptable |
+| **HwpxConverter.exe** | Bundled with Hangul, GUI only | No CLI, Windows only |
+| **kordoc** | Parses HWP → Markdown/JSON | Extracts *content*, doesn't convert *format* |
+| **hwp2hwpx** ← this | Converts HWP → HWPX (valid ZIP/XML) | Needs Java runtime |
+
+If you need to **read** HWP content → use [kordoc](https://github.com/chrisryugj/kordoc).
+If you need a **real HWPX file** you can open/edit in Hangul → use this.
+
+## Install
 
 ```bash
 pip install hwp2hwpx
 ```
 
-Java가 없으면:
+Requires Java Runtime (JRE) 8+:
 
 ```bash
 # Windows
@@ -29,21 +37,21 @@ brew install temurin
 apt install default-jre
 ```
 
-## 사용법
+## Usage
 
 ### CLI
 
 ```bash
-# 단일 파일
+# Single file
 hwp2hwpx document.hwp
 
-# 여러 파일
+# Multiple files
 hwp2hwpx *.hwp
 
-# 출력 디렉토리 지정
+# Output directory
 hwp2hwpx document.hwp -o output/
 
-# 폴더 내 전체 변환 (재귀)
+# Recursive folder conversion
 hwp2hwpx ./documents/ -r
 ```
 
@@ -52,11 +60,11 @@ hwp2hwpx ./documents/ -r
 ```python
 from hwp2hwpx import convert, convert_batch
 
-# 단일 파일
+# Single file
 output_path = convert("document.hwp")
 output_path = convert("document.hwp", "output.hwpx")
 
-# 배치
+# Batch
 results = convert_batch(["a.hwp", "b.hwp"], output_dir="output/")
 for input_path, output_path, error in results:
     if error:
@@ -65,16 +73,67 @@ for input_path, output_path, error in results:
         print(f"OK: {output_path}")
 ```
 
-## 한글 경로 지원
+## How it works
 
-Windows에서 한글(Korean) 파일 경로를 자동으로 처리합니다.
-내부적으로 임시 ASCII 경로를 경유하여 JVM 인코딩 문제를 우회합니다.
+Bundles [neolord0/hwp2hwpx](https://github.com/neolord0/hwp2hwpx) Java library as a fat JAR:
+- **hwplib** — reads HWP binary (OLE2/CFB compound document)
+- **hwpxlib** — writes HWPX XML (ZIP archive with OWPML structure)
 
-## 라이선스
+Pure file-format conversion. No Hangul installation, no COM API, no DRM issues.
+
+Korean file paths on Windows are automatically handled via temp-file workaround (JVM encoding issue bypass).
+
+## Output format
+
+The output HWPX is a standard ZIP archive containing:
+```
+META-INF/container.xml
+Contents/header.xml
+Contents/section0.xml
+Contents/section1.xml
+...
+```
+
+Fully compatible with Hangul 2020+ and any OWPML-aware tool.
+
+## License
 
 Apache License 2.0
 
-원본 Java 라이브러리:
-- [hwp2hwpx](https://github.com/neolord0/hwp2hwpx) by neolord0
-- [hwplib](https://github.com/neolord0/hwplib) by neolord0
-- [hwpxlib](https://github.com/neolord0/hwpxlib) by neolord0
+Based on Java libraries by [neolord0](https://github.com/neolord0):
+- [hwp2hwpx](https://github.com/neolord0/hwp2hwpx)
+- [hwplib](https://github.com/neolord0/hwplib)
+- [hwpxlib](https://github.com/neolord0/hwpxlib)
+
+---
+
+## 한국어
+
+HWP(한글 워드프로세서) 파일을 HWPX(OWPML) 형식으로 변환하는 Python 패키지.
+
+`pip install hwp2hwpx` 한 줄로 설치, 바로 사용. 한글 프로그램 설치 불필요.
+
+### 설치
+
+```bash
+pip install hwp2hwpx
+```
+
+Java 필요: `winget install EclipseAdoptium.Temurin.21.JDK`
+
+### 사용법
+
+```bash
+hwp2hwpx 문서.hwp
+hwp2hwpx *.hwp -o 출력폴더/
+```
+
+```python
+from hwp2hwpx import convert
+convert("문서.hwp")
+```
+
+### kordoc과의 차이
+
+- **kordoc**: HWP를 **읽어서** 마크다운/JSON으로 추출 (텍스트 파싱)
+- **hwp2hwpx**: HWP를 **HWPX 파일로 변환** (한글에서 열 수 있는 완전한 문서)
