@@ -1,0 +1,15 @@
+hwp2hwpx - HWP to HWPX Converter
+Copyright 2025 neolord0
+
+This product includes software developed by neolord0:
+  - hwp2hwpx (https://github.com/neolord0/hwp2hwpx)
+  - hwplib   (https://github.com/neolord0/hwplib)
+  - hwpxlib  (https://github.com/neolord0/hwpxlib)
+
+All original Java libraries are licensed under the Apache License 2.0.
+
+This Python wrapper packages the pre-built Java JAR for convenient
+pip installation and adds a CLI interface.
+
+This product references publicly available HWP/HWPX file format
+specifications published by Hancom Inc. (https://www.hancom.com).
