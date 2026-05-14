@@ -7,7 +7,7 @@ name = "hwp2hwpx"
 version = "1.0.0"
 description = "Convert HWP (Hangul Word Processor) files to HWPX format"
 readme = "README.md"
-license = "Apache-2.0"
+license = { text = "Apache-2.0" }
 requires-python = ">=3.8"
 keywords = ["hwp", "hwpx", "hangul", "korean", "document", "converter"]
 classifiers = [
@@ -29,8 +29,17 @@ classifiers = [
 hwp2hwpx = "hwp2hwpx.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/neolord0/hwp2hwpx"
-Issues = "https://github.com/neolord0/hwp2hwpx/issues"
+Homepage = "https://github.com/kossembly-dot/hwp2hwpx"
+Repository = "https://github.com/kossembly-dot/hwp2hwpx"
+Issues = "https://github.com/kossembly-dot/hwp2hwpx/issues"
+Original-Java-Library = "https://github.com/neolord0/hwp2hwpx"
+
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

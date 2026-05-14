@@ -7,6 +7,7 @@ import platform
 import shutil
 import subprocess
 import tempfile
+import zipfile
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -15,6 +16,68 @@ _java_exe: Optional[str] = None  # cached after first lookup
 
 def _jar_path() -> Path:
     return Path(__file__).parent / "jars" / "hwp2hwpx.jar"
+
+
+def _is_ascii_path(path: Union[str, Path]) -> bool:
+    try:
+        str(path).encode("ascii")
+    except UnicodeEncodeError:
+        return False
+    return True
+
+
+def _temp_parent_candidates() -> list[Path]:
+    candidates: list[Path] = []
+    for key in ("TMPDIR", "TEMP", "TMP"):
+        value = os.environ.get(key)
+        if value:
+            candidates.append(Path(value))
+
+    if platform.system() == "Windows":
+        system_root = os.environ.get("SystemRoot", r"C:\Windows")
+        candidates.extend([Path(system_root) / "Temp", Path(r"C:\Temp")])
+    else:
+        candidates.append(Path("/tmp"))
+
+    return candidates
+
+
+def _make_ascii_tempdir() -> Path:
+    """Create a temp dir whose full path can safely be passed to the JVM."""
+    for parent in _temp_parent_candidates():
+        if not _is_ascii_path(parent):
+            continue
+        try:
+            parent.mkdir(parents=True, exist_ok=True)
+            tmp_dir = Path(tempfile.mkdtemp(prefix="hwp2hwpx_", dir=str(parent)))
+        except OSError:
+            continue
+        if _is_ascii_path(tmp_dir):
+            return tmp_dir
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    tmp_dir = Path(tempfile.mkdtemp(prefix="hwp2hwpx_"))
+    if _is_ascii_path(tmp_dir):
+        return tmp_dir
+    shutil.rmtree(tmp_dir, ignore_errors=True)
+    raise RuntimeError(
+        "Could not create an ASCII-only temporary directory. "
+        "Set TMP or TEMP to an ASCII path, then try again."
+    )
+
+
+def _process_detail(result: subprocess.CompletedProcess[str]) -> str:
+    parts = [
+        part.strip()
+        for part in (result.stderr, result.stdout)
+        if part and part.strip()
+    ]
+    return "\n".join(parts) or "no output"
+
+
+def _validate_hwpx(path: Path) -> None:
+    if not zipfile.is_zipfile(path):
+        raise RuntimeError("Conversion failed: output is not a valid HWPX/ZIP file")
 
 
 def _find_java() -> Optional[str]:
@@ -141,7 +204,7 @@ def convert(
     jar = _jar_path()
 
     # Temp dir with ASCII-only paths (Korean path workaround)
-    tmp_dir = Path(tempfile.mkdtemp(prefix="hwp2hwpx_"))
+    tmp_dir = _make_ascii_tempdir()
     tmp_in = tmp_dir / "input.hwp"
     tmp_out = tmp_dir / "output.hwpx"
 
@@ -162,9 +225,17 @@ def convert(
             timeout=timeout,
         )
 
+        if result.returncode != 0:
+            detail = _process_detail(result)
+            raise RuntimeError(
+                f"Conversion failed with exit code {result.returncode}: {detail}"
+            )
+
         if not tmp_out.exists():
-            detail = (result.stderr or result.stdout or "no output").strip()
+            detail = _process_detail(result)
             raise RuntimeError(f"Conversion failed: {detail}")
+
+        _validate_hwpx(tmp_out)
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(str(tmp_out), str(output_path))

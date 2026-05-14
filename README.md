@@ -1,9 +1,12 @@
 # hwp2hwpx
 
+[![CI](https://github.com/kossembly-dot/hwp2hwpx/actions/workflows/ci.yml/badge.svg)](https://github.com/kossembly-dot/hwp2hwpx/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 HWP(한글 워드프로세서) 파일을 HWPX(OWPML) 형식으로 변환하는 Python 패키지.
 
 [neolord0/hwp2hwpx](https://github.com/neolord0/hwp2hwpx) Java 라이브러리를 번들하여
-`pip install` 한 줄로 설치, 바로 사용할 수 있게 만든 래퍼입니다.
+Python CLI/API에서 바로 사용할 수 있게 만든 래퍼입니다.
 
 ## 요구사항
 
@@ -12,8 +15,16 @@ HWP(한글 워드프로세서) 파일을 HWPX(OWPML) 형식으로 변환하는 P
 
 ## 설치
 
+PyPI 배포 전에는 GitHub Release의 wheel 파일을 설치하세요.
+
 ```bash
-pip install hwp2hwpx
+pip install https://github.com/kossembly-dot/hwp2hwpx/releases/download/v1.0.0/hwp2hwpx-1.0.0-py3-none-any.whl
+```
+
+소스에서 바로 설치할 수도 있습니다.
+
+```bash
+pip install git+https://github.com/kossembly-dot/hwp2hwpx.git
 ```
 
 Java가 없으면:
@@ -69,6 +80,13 @@ for input_path, output_path, error in results:
 
 Windows에서 한글(Korean) 파일 경로를 자동으로 처리합니다.
 내부적으로 임시 ASCII 경로를 경유하여 JVM 인코딩 문제를 우회합니다.
+
+## 개발
+
+```bash
+pip install -e ".[test]"
+pytest
+```
 
 ## 라이선스
 
